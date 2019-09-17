@@ -1,0 +1,55 @@
+Parameters:
+  SubnetID1:
+    Type: String
+  SubnetID2:
+    Type: String
+  SubnetID3:
+    Type: String
+  SecurityGroup:
+    Type: String
+    
+
+Resources:
+  EFS:
+    Type: AWS::EFS::FileSystem
+    Properties:
+      FileSystemTags:
+        - Key: Name
+          Value: webproyectEFS
+
+  Mount1:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId:
+        Ref: EFS
+      SubnetId:
+        Ref: SubnetID1
+      SecurityGroups:
+        - Ref: SecurityGroup
+
+  Mount2:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId:
+        Ref: EFS
+      SubnetId:
+        Ref: SubnetID2
+      SecurityGroups:
+        - Ref: SecurityGroup
+
+  Mount3:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId:
+        Ref: EFS
+      SubnetId:
+        Ref: SubnetID3
+      SecurityGroups:
+        - Ref: SecurityGroup
+
+Outputs:
+  EFS:
+    Value: 
+      Ref: EFS
+      
+

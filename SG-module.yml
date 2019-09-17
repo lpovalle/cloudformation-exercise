@@ -1,0 +1,26 @@
+Parameters:
+  VPCID:
+    Type: String
+
+
+Resources:
+  VPCsecuritygroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupName: luis-trambo
+      GroupDescription: description
+      SecurityGroupEgress: 
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+      VpcId: 
+        Ref: VPCID
+
+Outputs:
+  SecurityGroup:
+    Value:
+      Ref: VPCsecuritygroup

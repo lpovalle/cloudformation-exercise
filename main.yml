@@ -1,0 +1,167 @@
+Parameters:
+
+  CIDRVPC:
+    Description: Cidr block used for the VPC
+    Type: String
+    Default: 10.0.0.0/16
+  
+  PubSubnet1CIDR:
+    Description: Cidr block used for the first public subnet
+    Type: String
+    AllowedValues:
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+      - 10.0.4.0/24
+      - 10.0.5.0/24
+      - 10.0.6.0/24
+
+  PubSubnet2CIDR:
+    Description: Cidr block used for the second public subnet
+    Type: String
+    AllowedValues:
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+      - 10.0.4.0/24
+      - 10.0.5.0/24
+      - 10.0.6.0/24
+
+  PubSubnet3CIDR:
+    Description: Cidr block used for the third public subnet
+    Type: String
+    AllowedValues:
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+      - 10.0.4.0/24
+      - 10.0.5.0/24
+      - 10.0.6.0/24
+
+  PriSubnet1CIDR:
+    Description: Cidr block used for the first private subnet
+    Type: String
+    AllowedValues:
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+      - 10.0.4.0/24
+      - 10.0.5.0/24
+      - 10.0.6.0/24
+
+  PriSubnet2CIDR:
+    Description: Cidr block used for the second private subnet
+    Type: String
+    AllowedValues:
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+      - 10.0.4.0/24
+      - 10.0.5.0/24
+      - 10.0.6.0/24
+
+  PriSubnet3CIDR:
+    Description: Cidr block used for the third private subnet
+    Type: String
+    AllowedValues:
+      - 10.0.1.0/24
+      - 10.0.2.0/24
+      - 10.0.3.0/24
+      - 10.0.4.0/24
+      - 10.0.5.0/24
+      - 10.0.6.0/24
+
+  AvailabityZoneSub1:
+    Description: Avalability zone 
+    Type: String
+    AllowedValues:
+      - us-west-2a
+      - us-west-2b
+      - us-west-2c
+
+  AvailabityZoneSub2:
+    Description: Avalability zone 
+    Type: String
+    AllowedValues:
+      - us-west-2a
+      - us-west-2b
+      - us-west-2c
+
+  AvailabityZoneSub3:
+    Description: Avalability zone 
+    Type: String
+    AllowedValues:
+      - us-west-2a
+      - us-west-2b
+      - us-west-2c
+
+  AWSimage:
+    Type: String
+    AllowedValues:
+    - ami-04b762b4289fba92b
+
+  InstanceType:
+    Type: String
+    AllowedValues:
+      - t2.micro
+    
+  KeyPair:
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources:
+  VPCstack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://luis-cloudformation.s3-us-west-2.amazonaws.com/VPC-module.yml
+      Parameters:
+        Subnet1:
+          Ref: PubSubnet1CIDR
+        Subnet2:
+          Ref: PubSubnet2CIDR
+        Subnet3:
+          Ref: PubSubnet3CIDR
+        Subnet4:
+          Ref: PriSubnet1CIDR
+        Subnet5:
+          Ref: PriSubnet2CIDR
+        Subnet6:
+          Ref: PriSubnet3CIDR
+        VPC:
+          Ref: CIDRVPC
+        AvailabityZone1:
+          Ref: AvailabityZoneSub1
+        AvailabityZone2:
+          Ref: AvailabityZoneSub2
+        AvailabityZone3:
+          Ref: AvailabityZoneSub3
+
+  SGstack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://luis-cloudformation.s3-us-west-2.amazonaws.com/SG-module.yml
+      Parameters:
+        VPCID: !GetAtt VPCstack.Outputs.VPCID
+
+  EFSstack:
+    Type: AWS::CloudFormation::Stack  
+    Properties:
+      TemplateURL: https://luis-cloudformation.s3-us-west-2.amazonaws.com/EFS-module.yml
+      Parameters:
+        SubnetID1: !GetAtt VPCstack.Outputs.Subnet1
+        SubnetID2: !GetAtt VPCstack.Outputs.Subnet2
+        SubnetID3: !GetAtt VPCstack.Outputs.Subnet3
+        SecurityGroup: !GetAtt SGstack.Outputs.SecurityGroup
+
+  ASGstack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://luis-cloudformation.s3-us-west-2.amazonaws.com/ASG-module.yml
+      Parameters:
+        SubnetID1: !GetAtt VPCstack.Outputs.Subnet1
+        SubnetID2: !GetAtt VPCstack.Outputs.Subnet2
+        SubnetID3: !GetAtt VPCstack.Outputs.Subnet3
+        SecurityGroup: !GetAtt SGstack.Outputs.SecurityGroup
+        EFS: !GetAtt EFSstack.Outputs.EFS
+        KeyPair: !Ref KeyPair
+        InstanceType: !Ref InstanceType
+        AWSimage: !Ref  AWSimage

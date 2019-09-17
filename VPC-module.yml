@@ -1,0 +1,211 @@
+Parameters:
+  Subnet1:
+    Type: String
+
+  Subnet2:
+    Type: String
+
+  Subnet3:
+    Type: String
+
+  Subnet4:
+    Type: String
+
+  Subnet5:
+    Type: String
+
+  Subnet6:
+    Type: String
+
+  VPC:
+    Type: String
+
+  AvailabityZone1:
+    Type: String
+
+  AvailabityZone2:
+    Type: String
+
+  AvailabityZone3:
+    Type: String
+
+Resources:
+#TramboVPC
+  TramboVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      CidrBlock:
+        Ref: VPC
+      Tags:
+        - Key: Name
+          Value: TramboVPC
+
+#ACL
+  ACL:
+    Type: AWS::EC2::NetworkAcl
+    Properties: 
+      VpcId:
+        Ref: TramboVPC
+
+#Internet Gateway
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    
+  IGattach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: 
+        Ref: InternetGateway
+      VpcId: 
+        Ref: TramboVPC
+
+#Route Table for Public Subnets
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: TramboVPC
+      Tags:
+        - Key: Name
+          Value: RouteTableForPublicSubnets
+      
+  RTvsPubSub1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId: 
+        Ref: PublicSubnet1
+
+  RTvsPubSub2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId: 
+        Ref: PublicSubnet2
+
+  RTvsPubSub3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId:
+        Ref: PublicRouteTable
+      SubnetId: 
+        Ref: PublicSubnet3
+
+  PublicRouteToInternet:
+    Type: AWS::EC2::Route
+    DependsOn: IGattach
+    Properties: 
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId:
+        Ref: PublicRouteTable
+      GatewayId:
+       Ref: InternetGateway
+
+#Route Table for Private Subnets
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: TramboVPC
+
+  RTvsPriSub1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId:
+        Ref: PrivateRouteTable
+      SubnetId: 
+        Ref: PrivateSubnet1
+
+  RTvsPrivSub2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId:
+        Ref: PrivateRouteTable
+      SubnetId: 
+        Ref: PrivateSubnet2
+
+  RTvsPrivSub3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: 
+      RouteTableId:
+        Ref: PrivateRouteTable
+      SubnetId: 
+        Ref: PrivateSubnet3
+
+#Public Subnets
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Ref: AvailabityZone1
+      CidrBlock:
+        Ref: Subnet1
+      VpcId: 
+        Ref: TramboVPC
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Ref: AvailabityZone2
+      CidrBlock:
+        Ref: Subnet2
+      VpcId: 
+        Ref: TramboVPC
+
+  PublicSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:
+        Ref: AvailabityZone3
+      CidrBlock:
+        Ref: Subnet3
+      VpcId: 
+        Ref: TramboVPC
+
+#Private Subnets
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock:
+        Ref: Subnet4
+      VpcId:
+        Ref: TramboVPC
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock:
+        Ref: Subnet5
+      VpcId:
+        Ref: TramboVPC
+
+  PrivateSubnet3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock:
+        Ref: Subnet6
+      VpcId:
+        Ref: TramboVPC
+
+Outputs:
+
+  VPCID:
+    Value:
+      Ref: TramboVPC
+
+  Subnet1:
+    Value:
+      Ref: PublicSubnet1
+
+  Subnet2:
+    Value:
+      Ref: PublicSubnet2
+
+  Subnet3:
+    Value:
+      Ref: PublicSubnet3

@@ -1,0 +1,68 @@
+Parameters:
+  SubnetID1:
+    Type: String
+  SubnetID2:
+    Type: String
+  SubnetID3:
+    Type: String
+  KeyPair:
+    Type: String
+  InstanceType:
+    Type: String
+  AWSimage:
+    Type: String
+  SecurityGroup:
+    Type: String
+  EFS:
+    Type: String
+
+Resources:
+  EC2conf:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties: 
+      AssociatePublicIpAddress: true
+      ImageId:
+        Ref: AWSimage
+      InstanceMonitoring: false
+      InstanceType:
+        Ref: InstanceType
+      KeyName:
+        Ref: KeyPair
+      SecurityGroups:
+        - Ref: SecurityGroup
+      LaunchConfigurationName: SimpleEC2
+      UserData: 
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo yum update -y
+          sudo amazon-linux-extras install nginx1.12 -y
+          cd /usr/share/nginx/html
+          sudo yum install -y amazon-efs-utils
+          sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport ${EFS}.efs.us-west-2.amazonaws.com:/ /usr/share/nginx/html
+          sudo systemctl start nginx
+
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Name: LoadBalancerWebProyect
+      Subnets: 
+        - Ref: SubnetID1
+        - Ref: SubnetID2
+        - Ref: SubnetID3
+      Type: network
+
+  Autoscaling:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties: 
+      AutoScalingGroupName: Webproyect
+      DesiredCapacity: 2
+      LaunchConfigurationName:
+          Ref: EC2conf
+      MaxSize: 2
+      MinSize: 1
+      VPCZoneIdentifier: 
+        - Ref: SubnetID1
+        - Ref: SubnetID2
+        - Ref: SubnetID3
+            
